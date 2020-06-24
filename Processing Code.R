@@ -4,6 +4,5 @@ str(data)
 
 ## Convert Date variable to POSIX.ct and Interval variable to factor
 library(dplyr)
-data <- mutate(data, date = as.POSIXct(date, tz = "", "%Y-%m-%d")) %>%
-  mutate(interval = as.factor(interval))
+data <- mutate(data, date = as.POSIXct(date, tz = "", "%Y-%m-%d"))
   
