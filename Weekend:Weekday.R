@@ -24,9 +24,19 @@ by_day_type_df <- as.data.frame(by_day_type) %>%
   gather(key = "interval", value = "steps", -day_type) %>%
   mutate(interval = as.numeric(interval))
 
+  ## Make interval into time
+interval <- ifelse(nchar(by_day_type_df$interval) == 1, paste("000", by_day_type_df$interval, sep = ""),
+                   ifelse(nchar(by_day_type_df$interval) == 2, paste("00", by_day_type_df$interval, sep = ""),
+                   ifelse(nchar(by_day_type_df$interval) == 3, paste("0", by_day_type_df$interval, sep = ""),
+                          by_day_type_df$interval)))
 
-ggplot(by_day_type_df, aes(interval, steps, group = 1)) + geom_line(col = "maroon") + 
-  facet_grid(day_type ~ .)                                                                          
+by_day_type_df$time <- as.POSIXct(interval, format = "%H%M")
+
+
+ggplot(by_day_type_df, aes(time, steps, group = 1)) + geom_line(col = "maroon") + 
+  facet_grid(day_type ~ .) +
+  scale_x_datetime(labels = date_format("%H:%M")) +
+  theme_bw()
                                                                           
 
 
