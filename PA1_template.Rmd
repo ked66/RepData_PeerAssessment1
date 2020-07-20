@@ -8,7 +8,7 @@ output:
 
 ## Loading and preprocessing the data
 
-First, the activity dataset was loaded into R. Before analysis, the 'Date' variable was coerced to POSIXct format, to allow for easier coding.
+First, the repository was forked from GitHub and downloaded to the researcher's computer. The activity dataset was then loaded into R. Before analysis, the 'Date' variable was coerced to POSIXct format, to allow for ease of analysis.  
 
 ```{r package_load, include = FALSE}
 library(dplyr)
@@ -17,21 +17,21 @@ library(tidyr)
 library(ggplot2)
 ```
 
-```{r preprocessing, results="hide"}
+```{r preprocessing, results="hide", cache = TRUE}
 data <- read.csv(unz("activity.zip", "activity.csv"))
 data <- mutate(data, date = as.POSIXct(date, tz = "", "%Y-%m-%d"))
 ```
 
 ## What is mean total number of steps taken per day?
 
-Missing values were removed from the dataset for this analysis. With the remaining values, the total number of steps taken per day was calculated.
+Missing values were removed from the dataset for this analysis. With the remaining values, the total number of steps taken per day was calculated.  
 
 ```{r meansteps}
 complete_data <- na.omit(data)
 per_day <- tapply(complete_data$steps, complete_data$date, sum)
 ```
 
-The total number of steps was plotted as a histogram using the ggplot2 graphics system:
+The total number of steps per day was plotted as a histogram using the ggplot2 graphics system:  
 
 ```{r histogram}
 qplot(per_day, 
@@ -43,7 +43,7 @@ qplot(per_day,
       fill = I("maroon"), col = I("black")) + theme_bw()
 ```
 
-```{r overalmeansteps, echo = FALSE}
+```{r overallmeansteps, echo = FALSE}
 mean <- mean(per_day)   ## 10766.15
 median <- median(per_day) ## 10765
 ```
@@ -54,20 +54,32 @@ Overall, the mean number of total steps per day was `r mean`, and the median num
 
 First, the mean number of steps per five-minute interval was calculated and formatted as a data frame for graphing.
 
+In the dataset, each time interval was coded as its beginning numeric hour numeric minute, with leading zeroes dropped. (I.e. the interval begining at midnight, 00:00, was coded as "0". The Interval begining at 2:35 p.m., 14:35, was coded as "1435".) To allow for a readable graph, the leading zeroes were replaced using the vectorized ifelse() function, then converted to POSIXct format.
+
 ```{r interval}
 by_interval <- tapply(complete_data$steps, complete_data$interval, mean) %>%
   as.data.frame() %>%
   setDT(keep.rownames = TRUE)
 names(by_interval) <- c("interval", "steps")
 by_interval <- mutate(by_interval, interval = as.numeric(interval))
+
+interval <- ifelse(nchar(by_interval$interval) == 1, paste("000", by_interval$interval, sep = ""),
+                   ifelse(nchar(by_interval$interval) == 2, paste("00", by_interval$interval, sep = ""),
+                   ifelse(nchar(by_interval$interval) == 3, paste("0", by_interval$interval, sep = ""),
+                   by_interval$interval)))
+
+by_interval$time <- as.POSIXct(interval, format = "%H%M", tz = "UTC")
 ```
 
-Mean steps was plotted as a function of five-minute interval over the day:
+The time series was graphed using ggplot.
 
 ```{r graph}
-ggplot(data = by_interval, aes(interval, steps, group = 1)) + geom_line(col = "maroon") +
-  labs(title = "Mean Number of Steps per 5-minute Interval", x = "5-Minute Interval",
-       y = "Mean Number of Steps") + theme_bw()
+library(scales)
+ggplot(data = by_interval, aes(time, steps, group = 1)) + geom_line(col = "maroon") +
+  labs(title = "Mean Number of Steps per 5-minute Interval", x = "Time of Day",
+       y = "Mean Number of Steps") +
+  scale_x_datetime(labels = date_format("%H:%M")) +
+  theme_bw()
 ```
 
 ```{r maxinterval}
@@ -75,11 +87,11 @@ max <- max(by_interval$steps)
 max_interval <- subset(by_interval, steps == max)
 ```
 
-Overall, the interval with greatest mean number of steps was interval `r max_interval$interval`.
+Overall, the interval with greatest mean number of steps was interval beginning at 08:35, or 8:35 a.m.
 
 ## Imputing missing values
 
-```{r echo = FALSE}
+```{r totalmissing, echo = FALSE}
 missing <- sum(is.na(data))
 ```
 
@@ -98,6 +110,7 @@ With this imputed dataset, the total number of steps per day was calculated and 
 
 ```{r imputeanalysis}
 imputed_per_day <- tapply(imputed_data$steps, imputed_data$date, sum)
+
 qplot(imputed_per_day, 
       geom = "histogram", 
       binwidth = 5000, 
@@ -107,15 +120,16 @@ qplot(imputed_per_day,
       fill = I("maroon"), col = I("black")) + theme_bw()
 ```
 
-```{r}
+```{r, imputemean}
 imputed_mean <- mean(imputed_per_day)
 imputed_median <- median(imputed_per_day)
 ```
 
 With this new imputed dataset, the mean number of steps per day was `r imputed_mean`, and the median number of steps was `r imputed_median`.
 
-This imputed data was then compared to the original data using a paneled histogram.
-```{r, echo = FALSE}
+This imputed data was then compared to the original data using a paneled histogram.  
+
+```{r comparehistorgram}
 imputed_per_day <- as.data.frame(imputed_per_day) %>%
   mutate(data = "imputed")
 names(imputed_per_day) <- c("steps", "data")
@@ -130,9 +144,9 @@ ggplot(compare, aes(x=steps)) +
   labs(title = "Total Steps per Day by Dataset", x = "Steps", y = "Count")
 ```
 
-The two datasets were very similar, however the imputed data set had more values, clustered around the mean. This did not significantly change the mean or median number of steps per day:
+The two datasets were very similar, however the imputed data set had more values, clustered around the mean. This did not significantly change the mean or median number of steps per day:  
 
-```{r, echo = FALSE}
+```{r comparemean, echo = FALSE}
 library(xtable)
 table <- as.data.frame(matrix(data = c(mean, imputed_mean, median, imputed_median), nrow = 2, dimnames = list(c("Original", "Imputed"), c("Mean", "Median"))))
 print(table)
@@ -156,7 +170,7 @@ for(i in 1:length(imputed_data_2$day)){
 
 The mean number of steps per five minute interval was calculated, stratifying by the new "Weekend/Weekday" variable. The data was reformatted for easy graphing.  
 
-```{r}
+```{r day_typeanalysis}
 by_day_type <- tapply(imputed_data_2$steps, INDEX = list(imputed_data_2$day_type, 
 imputed_data_2$interval), mean)
 
@@ -164,13 +178,22 @@ by_day_type_df <- as.data.frame(by_day_type) %>%
   setDT(keep.rownames = "day_type") %>%
   gather(key = "interval", value = "steps", -day_type) %>%
   mutate(interval = as.numeric(interval))
+
+interval <- ifelse(nchar(by_day_type_df$interval) == 1, paste("000", by_day_type_df$interval, sep = ""),
+              ifelse(nchar(by_day_type_df$interval) == 2, paste("00", by_day_type_df$interval, sep = ""),
+              ifelse(nchar(by_day_type_df$interval) == 3, paste("0", by_day_type_df$interval, sep = ""),
+                   by_day_type_df$interval)))
+
+by_day_type_df$time <- as.POSIXct(interval, format = "%H%M", tz = "UTC")
 ```
 
 A panel time-series plot was created to compare Weekend and Weekday activity:
 
 ```{r panelplot}
-ggplot(by_day_type_df, aes(interval, steps, group = 1)) + geom_line(col = "maroon") + 
-  facet_grid(day_type ~ .) + theme_bw()
+ggplot(by_day_type_df, aes(time, steps, group = 1)) + geom_line(col = "maroon") + 
+  facet_grid(day_type ~ .) +
+  scale_x_datetime(labels = date_format("%H:%M")) +
+  theme_bw()
 ```
 
 Weekend and Weekday activity followed similar broad patterns (i.e., peaks at the same 5-minute intervals). However, on Weekdays there was one very large peak around interval 800, with other peaks much shorter; on Weekends, the peaks were more similar to each other in intensity.
