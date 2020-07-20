@@ -5,18 +5,31 @@ by_interval <- tapply(complete_data$steps, complete_data$interval, mean) %>%
   as.data.frame() %>%
   setDT(keep.rownames = TRUE)
 names(by_interval) <- c("interval", "steps")
-by_interval <- mutate(by_interval, interval = as.numeric(interval))
+by_interval <- mutate(by_interval, interval = as.character(interval))
 
-plot(by_interval$interval, by_interval$steps, 
+library(tidyr)
+library(dplyr)
+
+interval <- ifelse(nchar(by_interval$interval) == 1, paste("000", by_interval$interval, sep = ""),
+                   ifelse(nchar(by_interval$interval) == 2, paste("00", by_interval$interval, sep = ""),
+                   ifelse(nchar(by_interval$interval) == 3, paste("0", by_interval$interval, sep = ""),
+                   by_interval$interval)))
+
+by_interval$time <- as.POSIXct(interval, format = "%H%M", tz = "UTC")
+
+plot(by_interval$time, by_interval$steps, 
      type = "l", col = "maroon",
      main = "Mean Number of Steps per 5-minute Interval",
      xlab = "5-Minute Interval",
      ylab = "Mean Number of Steps")
 
 library(ggplot2)
-ggplot(data = by_interval, aes(interval, steps, group = 1)) + geom_line(col = "maroon") +
-  labs(title = "Mean Number of Steps per 5-minute Interval", x = "5-Minute Interval",
-       y = "Mean Number of Steps")
+library(scales)
+ggplot(data = by_interval, aes(time, steps, group = 1)) + geom_line(col = "maroon") +
+  labs(title = "Mean Number of Steps per 5-minute Interval", x = "Time of Day",
+       y = "Mean Number of Steps") +
+  scale_x_datetime(labels = date_format("%H:%M")) +
+  theme_bw()
 
 ## Which 5-minute interval, on average across all the days in the dataset, 
 ## contains the maximum number of steps?
