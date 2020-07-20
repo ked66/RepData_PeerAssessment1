@@ -38,6 +38,7 @@ qplot(complete_per_day,
       ylab = "Frequency",
       fill = I("maroon"), col = I("black"))
 
-mean(complete_per_day$)   ## 10766.19
+mean(complete_per_day)   ## 10766.19
 median(complete_per_day) ## 10766.19
+
 
