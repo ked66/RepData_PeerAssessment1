@@ -11,6 +11,46 @@ output:
 First, the repository was forked from GitHub and downloaded to the researcher's computer. The activity dataset was then loaded into R. Before analysis, the 'Date' variable was coerced to POSIXct format, to allow for ease of analysis.  
 
 
+```r
+library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
+library(data.table)
+```
+
+```
+## 
+## Attaching package: 'data.table'
+```
+
+```
+## The following objects are masked from 'package:dplyr':
+## 
+##     between, first, last
+```
+
+```r
+library(tidyr)
+library(ggplot2)
+```
 
 
 ```r
@@ -41,9 +81,13 @@ qplot(per_day,
       fill = I("maroon"), col = I("black")) + theme_bw()
 ```
 
-![](PA1_template_files/figure-html/histogram-1.png)<!-- -->
+![](PA1_template_files/figure-html/mean steps histogram-1.png)<!-- -->
 
 
+```r
+mean <- mean(per_day)
+median <- median(per_day)
+```
 
 Overall, the mean number of total steps per day was 1.0766189\times 10^{4}, and the median number of steps was 10765.
 
@@ -81,7 +125,7 @@ ggplot(data = by_interval, aes(time, steps, group = 1)) + geom_line(col = "maroo
   theme_bw()
 ```
 
-![](PA1_template_files/figure-html/graph-1.png)<!-- -->
+![](PA1_template_files/figure-html/interval graph-1.png)<!-- -->
 
 
 ```r
@@ -94,6 +138,9 @@ Overall, the interval with greatest mean number of steps was interval beginning 
 ## Imputing missing values
 
 
+```r
+missing <- sum(is.na(data))
+```
 
 In the dataset, there was a total of 2304 missing values. All missing values were replaced with the mean value for that five-minute-interval using a for loop.
 
@@ -122,7 +169,7 @@ qplot(imputed_per_day,
       fill = I("maroon"), col = I("black")) + theme_bw()
 ```
 
-![](PA1_template_files/figure-html/imputeanalysis-1.png)<!-- -->
+![](PA1_template_files/figure-html/impute analysis-1.png)<!-- -->
 
 
 ```r
@@ -150,10 +197,16 @@ ggplot(compare, aes(x=steps)) +
   labs(title = "Total Steps per Day by Dataset", x = "Steps", y = "Count")
 ```
 
-![](PA1_template_files/figure-html/comparehistorgram-1.png)<!-- -->
+![](PA1_template_files/figure-html/compare historgram-1.png)<!-- -->
 
 The two datasets were very similar, however the imputed data set had more values, clustered around the mean. This did not significantly change the mean or median number of steps per day:  
 
+
+```r
+library(xtable)
+table <- as.data.frame(matrix(data = c(mean, imputed_mean, median, imputed_median), nrow = 2, dimnames = list(c("Original", "Imputed"), c("Mean", "Median"))))
+print(table)
+```
 
 ```
 ##              Mean   Median
@@ -208,7 +261,7 @@ ggplot(by_day_type_df, aes(time, steps, group = 1)) + geom_line(col = "maroon") 
   theme_bw()
 ```
 
-![](PA1_template_files/figure-html/panelplot-1.png)<!-- -->
+![](PA1_template_files/figure-html/day_type plot-1.png)<!-- -->
 
 Weekend and Weekday activity followed similar broad patterns (i.e., peaks at the same 5-minute intervals). However, on Weekdays there was one very large peak around interval 800, with other peaks much shorter; on Weekends, the peaks were more similar to each other in intensity.
 
