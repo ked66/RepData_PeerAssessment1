@@ -263,6 +263,6 @@ ggplot(by_day_type_df, aes(time, steps, group = 1)) + geom_line(col = "maroon") 
 
 ![](PA1_template_files/figure-html/day_type plot-1.png)<!-- -->
 
-Weekend and Weekday activity followed similar broad patterns (i.e., peaks at the same 5-minute intervals). However, on Weekdays there was one very large peak around interval 800, with other peaks much shorter; on Weekends, the peaks were more similar to each other in intensity.
+Weekend and Weekday activity followed similar broad patterns (i.e., peaks at the same 5-minute intervals). However, on Weekdays there was one very large peak at around 08:30, with other peaks much shorter; on Weekends, the peaks were more similar to each other in intensity.
 
 
